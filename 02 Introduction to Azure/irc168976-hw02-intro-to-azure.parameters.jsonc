@@ -1,0 +1,15 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "templateDeploymentPurpose": {
+          "value": "IRC168976-hw02-intro-to-azure"
+        },
+        "operatorIPAddress":{
+          "value": "*"
+        },
+        "vmAdministratorAccountSSHPublicKeyContents": {
+          "value": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDD5SlQlBEGqCT0aiFgZzrH5Kzql0i8WFk9zFqLxpqXl0ATqTZsyXhI9hOaNIuNqxL4YrmLLecGo6oykWTjArSjD9EkXa1HnZpmaRYzg15dOOvqJUR9KQmV30dJG+xjK+8lLFt09kOyAUmrljjHNsc4s4K6Zz0Q0B+DdI86DOwN9yrtkOLubdzW/PRawgL2gxYBK4Rr5zvK9BV3OIynjW0Zg71kJCE9yPGf+41UhvqwwUaR9qlSe6d3DTASDIFq1KW9Qy29Tmtz/PFBCdNoMQT811smX4RWaXzpPJhmjXUIwmTTXDBMRajv8F/gh6MZC5/V0KMzGjihiRJ1wSBMt+YNI9F6BYXlVdDjasQzAI8+Qxjrbq+gPHSrUbPK+Z2bLpm5fknXowMwgfdHI2B4wf3U3FC6jUe7xneEv5WyQFd3dbEBLo4xLaemczvwiUmmpNBcLyHLh7yb7QEwnOQTn2esDnl0Lic/o0a4kuKnfqDrZOZjRn2D4LOtMxTok8TToQk="
+        }
+    }
+}

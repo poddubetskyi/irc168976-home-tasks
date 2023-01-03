@@ -1,0 +1,40 @@
+#cloud-config
+
+# update all installed packages
+package_upgrade: true
+
+# install Apache and curl
+packages:
+  - apache2
+  - curl
+# wtite a script to run and create custom Apache index file
+write_files:
+- content: |
+    #!/usr/bin/env bash
+    customIndexFN=index.html
+    customIndexTargetDir=/var/www/html/
+    workDir=${0%/*}
+    if [[ -d "${workDir}" ]] ; then
+      cd "${workDir}"
+    else
+      printf 'Error. The folder `%s` does not exist. Cannot continue\n' "${workDir}"
+      exit 1
+    fi
+
+    vmId=$(curl -s --header "Metadata:true" --noproxy "*" "http://169.254.169.254/metadata/instance/compute/?api-version=2021-01-01" | grep --only-matching --perl-regexp '(?<="vmId":")[^"]+' | tr --delete '\r\n')
+    printf 'vmId %s\n' "${vmId}" >&2
+    printf '<html><title>IRC168976 Home Work 02 Introduction to Azure by Poddubetskyi Volodymyr</title> <body><h1>IRC168976 Home Work 02 Introduction to Azure by Poddubetskyi Volodymyr on %s (VM ID %s)</h1></body></html>' "${HOSTNAME}" "${vmId}" > "${customIndexFN}"
+    if [[ -f ${customIndexFN} ]] ; then
+      sudo mv --verbose "${customIndexFN}" "${customIndexTargetDir}${customIndexFN}"
+      sudo chmod --verbose =0644 "${customIndexTargetDir}${customIndexFN}"
+    else
+      printf 'Error. File `%s` does not exist. Cannot continue\n' ${customIndexFN}
+      exit 2
+    fi
+  path: /run/firststartTmpDir/create-index.bash
+  permissions: '0700'
+# Rename default Apache index file and Execute a script to create custom Apache index file
+runcmd:
+  - [ sudo, mv, --verbose, "/var/www/html/index.html", "/var/www/html/index.html.orig" ]
+  - [ sudo, bash, -c, '/run/firststartTmpDir/create-index.bash' ]
+  - [ sudo, rm, --recursive, --dir, --verbose, '/run/firststartTmpDir' ]

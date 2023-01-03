@@ -1,0 +1,545 @@
+/*
+# IRC168976 DevOps GL BaseCamp homework 02. Introduction to Azure
+Author: Poddubetskyi Volodymyr
+*/
+
+{
+  "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "templateDeploymentPurpose": {
+      "type": "string",
+      "defaultValue": "IRC168976-hw02-intro-to-azure",
+      "metadata": {
+        "description": "Template deployment purpose"
+      },
+      "maxLength":30,
+      "minLength":6
+    },
+
+    "domainNameLabelValueToAssociateWithPublicLoadBalancerIP": {
+      "type": "string",
+      "defaultValue": "[parameters('templateDeploymentPurpose')]",
+      "metadata": {
+        "description": "The domain name label value to associate with the public load balancer IP address"
+      }
+    },
+
+    "operatorIPAddress": {
+      "type": "string",
+      "defaultValue":"*",
+      "metadata": {
+        "description": "The public IP-address of operator's (client's) PC, from which this template is deployed. Used to restrict SSH access to VMs only for that IP"
+      }
+    },
+    "vmAdministratorAccountUsername": {
+      "type": "string",
+      "defaultValue":"adminuser",
+      "metadata": {
+        "description": "Virtual machine Administrator account username"
+      }
+    },
+    "vmAdministratorAccountSSHPublicKeyContents": {
+      "type": "secureString",
+      "metadata": {
+        "description": "Virtual machine Administrator account SSH public key contents. Must contain the type and contents of the key. For example: `SSH-RSA AAAAB3NzaC1...a_lot_of_symbols...TToQk=`"
+      }
+    },
+    "vmCustomDataBase64EncodedContents": {
+      "type": "secureString",
+      "defaultValue": "I2Nsb3VkLWNvbmZpZwoKIyB1cGRhdGUgYWxsIGluc3RhbGxlZCBwYWNrYWdlcwpwYWNrYWdlX3VwZ3JhZGU6IHRydWUKCiMgaW5zdGFsbCBBcGFjaGUgYW5kIGN1cmwKcGFja2FnZXM6CiAgLSBhcGFjaGUyCiAgLSBjdXJsCiMgd3RpdGUgYSBzY3JpcHQgdG8gcnVuIGFuZCBjcmVhdGUgY3VzdG9tIEFwYWNoZSBpbmRleCBmaWxlCndyaXRlX2ZpbGVzOgotIGNvbnRlbnQ6IHwKICAgICMhL3Vzci9iaW4vZW52IGJhc2gKICAgIGN1c3RvbUluZGV4Rk49aW5kZXguaHRtbAogICAgY3VzdG9tSW5kZXhUYXJnZXREaXI9L3Zhci93d3cvaHRtbC8KICAgIHdvcmtEaXI9JHswJS8qfQogICAgaWYgW1sgLWQgIiR7d29ya0Rpcn0iIF1dIDsgdGhlbgogICAgICBjZCAiJHt3b3JrRGlyfSIKICAgIGVsc2UKICAgICAgcHJpbnRmICdFcnJvci4gVGhlIGZvbGRlciBgJXNgIGRvZXMgbm90IGV4aXN0LiBDYW5ub3QgY29udGludWVcbicgIiR7d29ya0Rpcn0iCiAgICAgIGV4aXQgMQogICAgZmkKCiAgICB2bUlkPSQoY3VybCAtcyAtLWhlYWRlciAiTWV0YWRhdGE6dHJ1ZSIgLS1ub3Byb3h5ICIqIiAiaHR0cDovLzE2OS4yNTQuMTY5LjI1NC9tZXRhZGF0YS9pbnN0YW5jZS9jb21wdXRlLz9hcGktdmVyc2lvbj0yMDIxLTAxLTAxIiB8IGdyZXAgLS1vbmx5LW1hdGNoaW5nIC0tcGVybC1yZWdleHAgJyg/PD0idm1JZCI6IilbXiJdKycgfCB0ciAtLWRlbGV0ZSAnXHJcbicpCiAgICBwcmludGYgJ3ZtSWQgJXNcbicgIiR7dm1JZH0iID4mMgogICAgcHJpbnRmICc8aHRtbD48dGl0bGU+SVJDMTY4OTc2IEhvbWUgV29yayAwMiBJbnRyb2R1Y3Rpb24gdG8gQXp1cmUgYnkgUG9kZHViZXRza3lpIFZvbG9keW15cjwvdGl0bGU+IDxib2R5PjxoMT5JUkMxNjg5NzYgSG9tZSBXb3JrIDAyIEludHJvZHVjdGlvbiB0byBBenVyZSBieSBQb2RkdWJldHNreWkgVm9sb2R5bXlyIG9uICVzIChWTSBJRCAlcyk8L2gxPjwvYm9keT48L2h0bWw+JyAiJHtIT1NUTkFNRX0iICIke3ZtSWR9IiA+ICIke2N1c3RvbUluZGV4Rk59IgogICAgaWYgW1sgLWYgJHtjdXN0b21JbmRleEZOfSBdXSA7IHRoZW4KICAgICAgc3VkbyBtdiAtLXZlcmJvc2UgIiR7Y3VzdG9tSW5kZXhGTn0iICIke2N1c3RvbUluZGV4VGFyZ2V0RGlyfSR7Y3VzdG9tSW5kZXhGTn0iCiAgICAgIHN1ZG8gY2htb2QgLS12ZXJib3NlID0wNjQ0ICIke2N1c3RvbUluZGV4VGFyZ2V0RGlyfSR7Y3VzdG9tSW5kZXhGTn0iCiAgICBlbHNlCiAgICAgIHByaW50ZiAnRXJyb3IuIEZpbGUgYCVzYCBkb2VzIG5vdCBleGlzdC4gQ2Fubm90IGNvbnRpbnVlXG4nICR7Y3VzdG9tSW5kZXhGTn0KICAgICAgZXhpdCAyCiAgICBmaQogIHBhdGg6IC9ydW4vZmlyc3RzdGFydFRtcERpci9jcmVhdGUtaW5kZXguYmFzaAogIHBlcm1pc3Npb25zOiAnMDcwMCcKIyBSZW5hbWUgZGVmYXVsdCBBcGFjaGUgaW5kZXggZmlsZSBhbmQgRXhlY3V0ZSBhIHNjcmlwdCB0byBjcmVhdGUgY3VzdG9tIEFwYWNoZSBpbmRleCBmaWxlCnJ1bmNtZDoKICAtIFsgc3VkbywgbXYsIC0tdmVyYm9zZSwgIi92YXIvd3d3L2h0bWwvaW5kZXguaHRtbCIsICIvdmFyL3d3dy9odG1sL2luZGV4Lmh0bWwub3JpZyIgXQogIC0gWyBzdWRvLCBiYXNoLCAtYywgJy9ydW4vZmlyc3RzdGFydFRtcERpci9jcmVhdGUtaW5kZXguYmFzaCcgXQogIC0gWyBzdWRvLCBybSwgLS1yZWN1cnNpdmUsIC0tZGlyLCAtLXZlcmJvc2UsICcvcnVuL2ZpcnN0c3RhcnRUbXBEaXInIF0K",
+      "metadata": {
+        "description": "Base64-encoded Cloud-init setup script to configure VM during provisioning process"
+      }
+    },
+    "vmInstancesCount":{
+      "type": "int",
+      "defaultValue":2,
+      "metadata": {
+        "description": "How many VMs should be created?"
+      },
+      "minValue":1,
+      "maxValue":11 // corresponds to maximum number of private ip addresses, that are available in planned virtual network segment
+    }
+  },
+  "functions": [],
+  "variables": {
+    /* this value is required to set from command line
+       using --location command-line parameter for AzureCLI */
+    "rgAndItsResourcesDeploymentLocation": "[deployment().location]",
+    /* a group name where to place resources */
+    "newRGWhereToPlaceResources":"[concat(parameters('templateDeploymentPurpose'),'-rg')]",
+    /* a resource set deployment name */
+    "resourceSetDeploymentName": "[concat(variables('newRGWhereToPlaceResources'),'-resource-set-deployment')]"
+  },
+  "resources": [
+    {
+      "name": "[variables('newRGWhereToPlaceResources')]",
+      "type": "Microsoft.Resources/resourceGroups",
+      "apiVersion": "2022-05-01",
+      "location": "[variables('rgAndItsResourcesDeploymentLocation')]",
+      "dependsOn": [],
+      "tags": {}
+    },
+/* DEPLOYMENT TO JUST CREATED RESOURCE GROUP */
+    {
+      "name": "[variables('resourceSetDeploymentName')]",
+      "resourceGroup": "[variables('newRGWhereToPlaceResources')]",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2021-04-01",
+      "dependsOn": [
+        "[resourceId('Microsoft.Resources/resourceGroups', variables('newRGWhereToPlaceResources'))]"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "parameters": {
+          "resourceSetDeploymentPurpose": {
+            "value": "[parameters('templateDeploymentPurpose')]"
+          },
+          "rgLocation": {
+            "value": "[reference(variables('newRGWhereToPlaceResources'),'2022-05-01','Full').location]"
+          },
+          "domainNameLabelVal":{
+            "value":"[toLower(parameters('domainNameLabelValueToAssociateWithPublicLoadBalancerIP'))]"
+          },
+          "operatorIPAddress": {
+            "value": "[parameters('operatorIPAddress')]"
+          },
+          "vmAdministratorAccountUsername": {
+            "value": "[parameters('vmAdministratorAccountUsername')]"
+          },
+          "vmAdministratorAccountSSHPublicKeyContents":{
+            "value": "[parameters('vmAdministratorAccountSSHPublicKeyContents')]"
+          },
+          "vmCustomDataBase64EncodedContents":{
+            "value":"[parameters('vmCustomDataBase64EncodedContents')]"
+          },
+          "vmInstancesCount":{
+            "value":"[parameters('vmInstancesCount')]"
+          }
+        },
+/* NESTED TEMPLATE TO CREATE RESOURCE SET IN THE RESOURCE GROUP */       
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "parameters": {
+            "resourceSetDeploymentPurpose": {
+              "type": "string"
+            },
+            "rgLocation": {
+              "type": "string"
+            },
+            "domainNameLabelVal": {
+              "type": "string"
+            },
+            "operatorIPAddress": {
+              "type": "string"
+            },
+            "vmAdministratorAccountUsername": {
+              "type": "string"
+            },
+            "vmAdministratorAccountSSHPublicKeyContents":{
+              "type": "secureString"
+            },
+            "vmCustomDataBase64EncodedContents": {
+              "type": "secureString"
+            },
+            "vmInstancesCount":{
+              "type": "int"
+            },
+            "uniqueStingUtcNowBased": {
+              "type": "string",
+              "defaultValue": "[uniqueString(utcNow())]"
+            }
+          },
+          "variables": {
+            "vnetInsideRGResourceName":"[concat(parameters('resourceSetDeploymentPurpose'),'-vnet')]",
+            "privateSubnetForVMsResourceName":"[concat(variables('vnetInsideRGResourceName'),'-PrSN-for-VMs')]",
+            "publicIPAddressResourceNameValue":"[concat(parameters('resourceSetDeploymentPurpose'),'-PubIP-for-PubLB')]",
+            "balancerResourceName": "[concat(parameters('resourceSetDeploymentPurpose'),'-pub-lb-for-VMs')]",
+            "frontendIPConfigName":"[concat(variables('balancerResourceName'),'-frontend-ip-cfg')]",
+            "backendAddressPoolName":"[concat(variables('balancerResourceName'),'-BkE-IPs-pool')]",
+            "loadBalancingHTTPRuleName":"[concat(variables('balancerResourceName'),'-http-lbr')]",
+            "inboundNATSSHRuleName":"[concat(variables('balancerResourceName'),'-ssh-to-VMs-nat-rule')]",
+            "httpHealthCheckRuleName": "[concat(variables('balancerResourceName'),'-http-health-check')]",
+            "outboundTrafficRuleName": "[concat(variables('balancerResourceName'),'-outbound-rule-allow-all')]",
+            "nsgResourceName": "[concat(parameters('resourceSetDeploymentPurpose'),'-nsg-allow-ssh-and-http')]",
+            "nsgAllowSSHInboundRuleName":"[concat(parameters('resourceSetDeploymentPurpose'),'-inbound-port-22-allow-from-client-ip')]",
+            "nsgAllowHTTPFromAllInboundRuleName":"[concat(parameters('resourceSetDeploymentPurpose'),'-inbound-http-allow-from-all')]",
+            "vmNICResourceName": "[concat(parameters('resourceSetDeploymentPurpose'),'-vm-nic')]",
+            "vmComputeResourceName": "[concat(parameters('resourceSetDeploymentPurpose'),'-vm')]",
+            "vmIPConfigSettingsName": "[concat(parameters('resourceSetDeploymentPurpose'),'-vm-ip-cfg')]",
+            "vmComputerName":"[concat(substring(parameters('resourceSetDeploymentPurpose'),0,6),parameters('uniqueStingUtcNowBased'))]",
+            "inboundNATFrontendPortForwardRangeStart":2201,
+            "inboundNATFrontendPortForwardRangeEnd":"[add(variables('inboundNATFrontendPortForwardRangeStart'),parameters('vmInstancesCount'))]"
+          },
+          "resources": [
+/* (#00) NETWORK SECURITY GROUP RESOURCE */
+            {
+              "name": "[variables('nsgResourceName')]",
+              "type": "Microsoft.Network/networkSecurityGroups",
+              "apiVersion": "2022-07-01",
+              "location": "[parameters('rgLocation')]",
+              "properties": {
+                "securityRules": [
+                  {
+                    "name": "[variables('nsgAllowSSHInboundRuleName')]",
+                    "properties": {
+                      "description": "Allow inbound traffic on port 22 from operator's (client's) IP",
+                      /*This rule assumes that on load balancer is created a port forwarding NAT rule that forwards traffic from pors in some range on external interfate to the 22-nd port inside private network. The ordinal number of an external port in range corresponds to an ordinal number of VM instance in private network */
+                      "protocol": "Tcp",
+                      "sourcePortRange": "*",
+                      "destinationPortRange": "22",
+                      "sourceAddressPrefix": "[parameters('operatorIPAddress')]",
+                      "destinationAddressPrefix": "*",
+                      "access": "Allow",
+                      "priority": 100,
+                      "direction": "Inbound"
+                    }
+                  },
+                  {
+                    "name": "[variables('nsgAllowHTTPFromAllInboundRuleName')]",
+                    "properties": {
+                      "description": "Allow inbound HTTP-traffic on standard port 80 from all",
+                      "protocol": "Tcp",
+                      "sourcePortRange": "*",
+                      "destinationPortRange": "80",
+                      "sourceAddressPrefix": "*",
+                      "destinationAddressPrefix": "*",
+                      "access": "Allow",
+                      "priority": 110,
+                      "direction": "Inbound"
+                    }
+                  }
+                ]
+              }
+            }
+/* /NETWORK SECURITY GROUP RESOURCE */
+            ,
+/* (#01) VIRTUAL NETWORK RESOURCE */
+            {
+              "name": "[variables('vnetInsideRGResourceName')]",
+              "type": "Microsoft.Network/virtualNetworks",
+              "apiVersion": "2020-11-01",
+              "location": "[parameters('rgLocation')]",
+              "dependsOn": [
+                "[resourceId('Microsoft.Network/networkSecurityGroups',variables('nsgResourceName'))]"
+              ],
+              "tags":{},
+              "properties": {
+                "addressSpace": {
+                  "addressPrefixes": [
+                    "10.0.0.0/28"
+                  ]
+                },
+                "subnets": [
+              /* SUBNET CHILD RESOURCE */
+                  {
+                    "name": "[variables('privateSubnetForVMsResourceName')]",
+                    "properties": {
+                      "networkSecurityGroup": {
+                        "id":"[resourceId('Microsoft.Network/networkSecurityGroups',variables('nsgResourceName'))]"
+                      },
+                      "addressPrefix": "10.0.0.0/28"
+                    }
+                  }
+                ]
+              }
+            }
+/* /VIRTUAL NETWORK RESOURCE */
+            ,
+/* (#02) PUBLIC IP ADDRESS RESOURCE */
+            {
+              "name": "[variables('publicIPAddressResourceNameValue')]",
+              "type": "Microsoft.Network/publicIPAddresses",
+              "apiVersion": "2022-07-01",
+              "location": "[parameters('rgLocation')]",
+              "zones":"[pickZones('Microsoft.Network', 'publicIPAddresses', parameters('rgLocation'), 3)]",
+              "tags": {},
+              "sku":{
+                "name":"Standard",
+                "tier":"Regional"
+              },
+              "properties": {
+                "publicIPAllocationMethod": "Static",
+                "publicIpAddressVersion": "IPv4",
+                "deleteOption":"Delete",
+                "dnsSettings": {
+                  "domainNameLabel": "[parameters('domainNameLabelVal')]"
+                },
+                "ipTags": [
+                  {
+                    "ipTagType": "RoutingPreference",
+                    "tag": "Internet"
+                  }
+                ]
+              }
+            }
+/* /PUBLIC IP ADDRESS RESOURCE */
+            ,
+/* (#03) LOAD BALANCER RESOURCE */
+            {
+              "name": "[variables('balancerResourceName')]",
+              "type": "Microsoft.Network/loadBalancers",
+              "apiVersion": "2022-07-01",
+              "location": "[parameters('rgLocation')]",
+              "dependsOn": [
+                "[resourceId('Microsoft.Network/publicIPAddresses', variables('publicIPAddressResourceNameValue'))]"
+              ],
+              "sku": {
+                "name": "Standard",
+                "tier": "Regional"
+              },
+              "properties": {
+                "frontendIPConfigurations": [
+                  /* use existing public IP address as frontend IP for this load balancer */
+                  {
+                    "name": "[variables('frontendIPConfigName')]",
+                    "properties": {
+                      "publicIPAddress": {
+                        "id": "[resourceId('Microsoft.Network/publicIPAddresses', variables('publicIPAddressResourceNameValue'))]"
+                      }
+                    }
+                  }
+                ],
+                "backendAddressPools": [
+                  {
+                    "name": "[variables('backendAddressPoolName')]"
+                  }
+                ],
+                "inboundNatRules": [
+                  /* inbound nat rule to allow inbound ssh connections
+                     to internal resources using port forwarding  */
+                  {
+                    "name": "[variables('inboundNATSSHRuleName')]",
+                    "properties": {
+                      "frontendIPConfiguration": {
+                        "id": "[resourceId('Microsoft.Network/loadBalancers/frontendIPConfigurations', variables('balancerResourceName'), variables('frontendIPConfigName'))]"
+                      },
+                      "backendAddressPool": {
+                        "id": "[resourceId('Microsoft.Network/loadBalancers/backendAddressPools', variables('balancerResourceName'), variables('backendAddressPoolName'))]"
+                      },
+                      "backendPort": 22,
+                      "idleTimeoutInMinutes":4,
+                      "protocol": "Tcp",
+                      "frontendPortRangeStart":"[variables('inboundNATFrontendPortForwardRangeStart')]",
+                      "frontendPortRangeEnd": "[variables('inboundNATFrontendPortForwardRangeEnd')]",
+                      "enableFloatingIP": false,
+                      "enableTcpReset": false
+                    }
+                  }
+                ],
+                "loadBalancingRules": [
+                  /* a rule to balance inbound HTTP traffic */
+                  {
+                    "name": "[variables('loadBalancingHTTPRuleName')]",
+                    "properties": {
+                      "frontendIPConfiguration": {
+                        "id": "[resourceId('Microsoft.Network/loadBalancers/frontendIPConfigurations', variables('balancerResourceName'), variables('frontendIPConfigName'))]"
+                      },
+                      "backendAddressPool": {
+                        "id": "[resourceId('Microsoft.Network/loadBalancers/backendAddressPools', variables('balancerResourceName'), variables('backendAddressPoolName'))]"
+                      },
+                      "protocol": "Tcp",
+                      "frontendPort": 80,
+                      "backendPort": 80,
+                      "enableFloatingIP": false,
+                      "idleTimeoutInMinutes": 15,
+                      "disableOutboundSnat":true,
+                      "enableTcpReset": true,
+                      "probe": {
+                        "id": "[resourceId('Microsoft.Network/loadBalancers/probes', variables('balancerResourceName'), variables('httpHealthCheckRuleName'))]"
+                      }
+                    }
+                  }
+                ],
+                "outboundRules": [
+                  /* a rule to allow all the outbound traffic */
+                  {
+                    "name": "[variables('outboundTrafficRuleName')]",
+                    "properties": {
+                      "frontendIPConfigurations": [
+                        {
+                          "id": "[resourceId('Microsoft.Network/loadBalancers/frontendIPConfigurations', variables('balancerResourceName'), variables('frontendIPConfigName'))]"
+                        }
+                      ],
+                      "backendAddressPool": {
+                        "id": "[resourceId('Microsoft.Network/loadBalancers/backendAddressPools', variables('balancerResourceName'), variables('backendAddressPoolName'))]"
+                      },
+                      "protocol": "All",
+                      "enableTcpReset": true,
+                      "idleTimeoutInMinutes": 15,
+                      "allocatedOutboundPorts": 31992
+                    }
+                  }
+                ],
+                "probes": [
+                  {
+                    "name": "[variables('httpHealthCheckRuleName')]",
+                    "properties": {
+                      "protocol": "Http",
+                      "port": 80,
+                      "requestPath": "/",
+                      "intervalInSeconds": 5,
+                      "numberOfProbes": 1
+                    }
+                  }
+                ]
+              }
+            }
+/* /LOAD BALANCER RESOURCE */
+            ,
+/* (#04) NIC RESOURCE TO ATTACH TO VM */
+            { /* scale network interface quantity using the `copy` mechanism that provided in ARM templates */
+              "copy": {
+                "name": "make-nic-copies",
+                "count": "[parameters('vmInstancesCount')]"
+              },
+              "name": "[concat(variables('vmNICResourceName'),'-0',copyIndex())]",
+              "type": "Microsoft.Network/networkInterfaces",
+              "apiVersion": "2020-11-01",
+              "location": "[parameters('rgLocation')]",
+              "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks', variables('vnetInsideRGResourceName'))]",
+                "[resourceId('Microsoft.Network/loadBalancers', variables('balancerResourceName'))]"
+              ],
+              "tags": {},
+              "properties": {
+                "ipConfigurations": [
+                  {
+                    "name": "[concat(variables('vmIPConfigSettingsName'),'-0',copyIndex('make-nic-copies'))]",
+                    "properties": {
+                      "privateIPAllocationMethod": "Dynamic",
+                      "subnet": {
+                        "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('vnetInsideRGResourceName'), variables('privateSubnetForVMsResourceName'))]"
+                      },
+                      "loadBalancerBackendAddressPools": [
+                        {
+                          "id":"[resourceId('Microsoft.Network/loadBalancers/backendAddressPools', variables('balancerResourceName'), variables('backendAddressPoolName'))]"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+/* /NIC RESOURCE TO ATTACH TO VM */
+            ,
+/* (#05) VM COMPUTE RESOURCE */
+            { /* scale VM instance quantity using the `copy` mechanism */
+              "copy": {
+                "name": "make-vm-copies",
+                "count": "[parameters('vmInstancesCount')]"
+              },
+              "name": "[concat(variables('vmComputeResourceName'),'-0',copyIndex())]",
+              "type": "Microsoft.Compute/virtualMachines",
+              "apiVersion": "2021-03-01",
+              "location": "[parameters('rgLocation')]",
+              "dependsOn": [
+                "[resourceId('Microsoft.Network/networkInterfaces', concat(variables('vmNICResourceName'),'-0',copyIndex()))]"
+              ],
+              "tags": {},
+              "properties": {
+                "hardwareProfile": {
+                  /* free services eligible size */
+                  "vmSize": "Standard_B1s"
+                },
+                "osProfile": {
+                  "computerName": "[concat(variables('vmComputerName'),'-vm-0',copyIndex())]",
+                  "adminUsername": "[parameters('vmAdministratorAccountUsername')]",
+                  "linuxConfiguration": {
+                    "disablePasswordAuthentication": true,
+                    "ssh": {
+                      "publicKeys": [
+                        {
+                          "path": "[concat('/home/', parameters('vmAdministratorAccountUsername'), '/.ssh/authorized_keys')]",
+                          "keyData": "[parameters('vmAdministratorAccountSSHPublicKeyContents')]"
+                        }
+                      ]
+                    }
+                  },
+                  "customData": "[parameters('vmCustomDataBase64EncodedContents')]"
+                },
+                "storageProfile": {
+                  "osDisk": {
+                    "createOption": "fromImage",
+                    "managedDisk": {
+                      "storageAccountType": "Standard_LRS"
+                    },
+                    "diskSizeGB": 30,
+                    "deleteOption": "Delete"
+                  },
+                  "imageReference": {
+                    "publisher": "canonical",
+                    "offer": "0001-com-ubuntu-server-focal",
+                    "sku": "20_04-lts-gen2",
+                    "version": "latest"
+                  }
+                },
+                "networkProfile": {
+                  "networkInterfaces": [
+                    {
+                      "id": "[resourceId('Microsoft.Network/networkInterfaces', concat(variables('vmNICResourceName'),'-0',copyIndex()))]"
+                    }
+                  ]
+                },
+                "diagnosticsProfile": {
+                  "bootDiagnostics": {
+                    "enabled": true
+                  }
+                }
+              }
+            }
+/* /VM COMPUTE RESOURCE */
+          ],
+          "outputs": {
+            "providedPublicIPAddress": {
+              "type": "string",
+              "value":"[reference(variables('publicIPAddressResourceNameValue')).ipAddress]"
+            },
+            "actualFQDN": {
+              "type": "string",
+              "value": "[reference(variables('publicIPAddressResourceNameValue')).dnsSettings.fqdn]"
+            },
+            "vmInstancesSSHAccessCommandsList": {
+              "type": "array",
+              "copy": {
+                "count": "[parameters('vmInstancesCount')]",
+                "input": "[format('ssh-keyscan -p {0} {2} >> ~/.ssh/known_hosts && ssh -v -p {0} -l {1} -i identity_file {2}', add(variables('inboundNATFrontendPortForwardRangeStart'),copyIndex()), parameters('vmAdministratorAccountUsername'),reference(variables('publicIPAddressResourceNameValue')).ipAddress)]"
+              }
+            },
+            "webAddressToAccessTheResultWithABrowser":{
+              "type": "string",
+              "value": "[format('http://{0}', reference(variables('publicIPAddressResourceNameValue')).ipAddress)]"
+            }
+          }
+        }
+      }
+    }
+  ],
+  "outputs": {
+    "providedPublicIPAddress": {
+      "type": "string",
+      "value":"[reference(variables('resourceSetDeploymentName')).outputs.providedPublicIPAddress.value]"
+    },
+    "actualFQDN": {
+      "type": "string",
+      "value":"[reference(variables('resourceSetDeploymentName')).outputs.actualFQDN.value]"
+    },
+    "vmInstancesSSHAccessCommandsList": {
+      "type": "array",
+      "value": "[reference(variables('resourceSetDeploymentName')).outputs.vmInstancesSSHAccessCommandsList.value]"
+    },
+    "webAddressToAccessTheResultWithABrowser":{
+      "type": "string",
+      "value": "[reference(variables('resourceSetDeploymentName')).outputs.webAddressToAccessTheResultWithABrowser.value]"
+    },
+    "azureCLIResourcesCleanUpCommandToRunInPowerShell":{
+      "type": "string",
+      "value": "[format('az group delete --yes --name {0} ; az deployment sub delete --name {1}',variables('newRGWhereToPlaceResources'),deployment().name)]"
+    }
+  }
+}
