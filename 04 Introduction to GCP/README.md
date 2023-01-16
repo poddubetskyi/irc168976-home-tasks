@@ -19,7 +19,7 @@
   * `hw04-vm-mysql-db-root-pw.secret` - a file that contain the desired password for the MySql DBMS
   * `hw04-vm-mysqladmin-app-adm-pw.secret` - a file that contain the desired password for the PHPMyAdmin App
   * `hw04-vm-mysqladmin-app-db-pw.secret` - a file that contain the desired password for the PHPMyAdmin App 
-secrets-data/website-key-pem.secret
+  * `website-key-pem.secret` - a file that contains website ssl private key contents in pem format
 * `non-restricted-data/`
   * `index.html` - the main page document for the website that is deployed within this work
   * `website-ssl.conf` - the configuration file for the Apache web server
