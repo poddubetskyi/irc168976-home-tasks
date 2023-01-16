@@ -11,7 +11,7 @@ bucketLocation="$(gcloud config get-value compute/region)"
 if ! vmServiceAccountMemberString=$(gcloud compute \
       project-info describe \
       --format='value(commonInstanceMetadata.items.vmServiceAccountMemberString)') || \
-      [[ -n ${vmServiceAccountMemberString} ]] ; then
+      [[ -z ${vmServiceAccountMemberString} ]] ; then
   printf 'ERROR in (%s). An error occurred while trying to get\n' "${0}" >&2
   printf 'the `vmServiceAccountMemberString` value from the `%s` project metadata\n' "${projectID}" >&2
   exit 1
@@ -44,7 +44,7 @@ create_bucket(){
       if gcloud compute project-info add-metadata \
           --metadata=bucketURL="${bucketURL}" ; then
         printf 'The bucketURL value\n`%s`\n' "${bucketURL}"
-        printf 'has been successfully stored in the project metadata'
+        printf 'has been successfully stored in the project metadata\n'
       else
         printf 'ERROR in (%s). An error occurred while trying to store\n' "${0}"  >&2
         printf 'the `%s` \nbucketURL value into project metadata\n' "${bucketURL}" >&2
@@ -71,3 +71,15 @@ upload_files_into_bucket(){
     gcloud storage cp "${fileName}" "${bucketURL}"
   done < <(find "${nonRestrictedDataSourceDirName}" -type f)
 }
+
+main (){
+
+  create_bucket
+  upload_files_into_bucket
+
+}
+
+main
+
+printf '\nAll operations have been completed successfully!\n'
+printf 'Please, run the `./03-deploy-irc168976-hw04-intro-to-gcp-vm-debian.gcloud.bash` script to continue with this work\n'

@@ -12,7 +12,7 @@ secretNamePattern='^[a-zA-Z_0-9-]+$'
 if ! vmServiceAccountMemberString=$(gcloud compute \
       project-info describe \
       --format='value(commonInstanceMetadata.items.vmServiceAccountMemberString)') || \
-      [[ -n ${vmServiceAccountMemberString} ]] ; then
+      [[ -z ${vmServiceAccountMemberString} ]] ; then
   printf 'ERROR in (%s). An error occurred while trying to get\n' "${0}" >&2
   printf 'the `vmServiceAccountMemberString` value from the `%s` project metadata\n' "${projectID}" >&2
   exit 1
@@ -69,4 +69,6 @@ while IFS=; read secretFile ; do
       "${memberRole}" "${vmServiceAccountMemberString}" "${secretName}"
   fi
 done < <(find "${secretsFolder}" -type f -iname '*.secret')
-     
+
+printf '\nAll operations have been completed successfully!\n'
+printf 'Please, run the `./02-create-bucket-and-upload-non-restricted-data.bash` script to continue with this work\n'

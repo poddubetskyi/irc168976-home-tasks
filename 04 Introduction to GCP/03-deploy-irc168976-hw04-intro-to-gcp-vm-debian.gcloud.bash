@@ -35,7 +35,7 @@ vmCreationCommandProperties=(
 if ! vmServiceAccountMemberString=$(gcloud compute \
       project-info describe \
       --format='value(commonInstanceMetadata.items.vmServiceAccountMemberString)') || \
-      [[ -n ${vmServiceAccountMemberString} ]] ; then
+      [[ -z ${vmServiceAccountMemberString} ]] ; then
   printf 'ERROR in (%s). An error occurred while trying to get\n' "${0}" >&2
   printf 'the `vmServiceAccountMemberString` value from the `%s` project metadata\n' "${projectID}" >&2
   exit 2
@@ -45,7 +45,7 @@ fi
 if ! bucketURL=$(gcloud compute \
       project-info describe \
       --format='value(commonInstanceMetadata.items.bucketURL)') || \
-      [[ -n ${bucketURL} ]] ; then
+      [[ -z ${bucketURL} ]] ; then
   printf 'ERROR in (%s). An error occurred while trying to get\n' "${0}" >&2
   printf 'the `bucketURL` value from the `%s` project metadata\n' "${projectID}" >&2
   exit 3
@@ -55,7 +55,7 @@ fi
 # with new VM and allow it access the Secret Manager service
 # [Use Secret Manager with Compute Engine and Google Kubernetes Engine](https://cloud.google.com/secret-manager/docs/accessing-the-api#oauth-scopes)
 vmCreationCommandProperties+=(
-  '--service-account' "${vmServiceAccountMemberString}" \
+  '--service-account' "${vmServiceAccountMemberString/#serviceAccount:/}" \
   '--scopes' 'cloud-platform' \
 )
 
@@ -79,7 +79,7 @@ declare -A metadataFromFileProperties=(
 # VM Metadata inline properties list
 declare -A metadataInlineProperties=( \
   ['enable-guest-attributes']='TRUE' \
-  ['isSSLSetupDataProvided']='true' \
+  ['isSSLSetupDataProvided']='false' \
   ['mysqlDBMSRootUserSecretName']='hw04-vm-mysql-db-root-pw' \
   ['phpMyAdminDbUserSecretName']='hw04-vm-mysqladmin-app-db-pw' \
   ['phpMyAdminAppUserSecretName']='hw04-vm-mysqladmin-app-adm-pw' \
@@ -117,8 +117,8 @@ create_ssh_public_key_metadata_file () {
 # Output: a string of comma-separated key=value pairs that is printed to standard output 
 populate_metadata_properties(){
   # get associative array contents inside this function
-  rpMeta=$(declare -p ${1})
-  eval "declare -A metadataProperties="${rpMeta#*=};
+  rpMeta=$(declare -p   ${1})
+  eval "declare -A metadataProperties=""${rpMeta#*=}";
   propertiesString=''
   for propName in ${!metadataProperties[@]} ; do
     propertiesString+="${propName}=${metadataProperties[${propName}]},"
@@ -134,6 +134,9 @@ check_does_public_ip_exist() {
             --format='value(name)' | wc -l ) -eq 0 ]] ; then
     printf 'Allocating external IP address with name `%s`\n' "${externalIpAddrID}"
     gcloud compute addresses create "${externalIpAddrID}" --region=$(gcloud config get-value compute/region)
+    gcloud compute firewall-rules create allow-inbound-http-traffic --action allow --rules tcp:80,tcp:443
+    gcloud compute firewall-rules create allow-inbound-ssh-traffic-from-me \
+      --source-ranges "$(curl http://ipecho.net/plain)/32" --action allow --rules tcp:22
   else
     printf 'External IP address with name `%s` already exists.\n Its IP address value is `%s`\n' \
         "${externalIpAddrID}" \
@@ -243,9 +246,11 @@ main () {
   if [[ $(gcloud compute instances list --quiet \
             --filter="(name=${vmName})" \
             --format="value(name)" | wc -l) -eq 0 ]] ; then
+
+    check_does_public_ip_exist
     # Create VM
     if gcloud compute instances create \
-      ${vmCreationCommandProperties[@]} \
+      "${vmCreationCommandProperties[@]}" \
       --metadata-from-file="$(populate_metadata_properties metadataFromFileProperties)" \
       --metadata="$(populate_metadata_properties metadataInlineProperties)"
     then

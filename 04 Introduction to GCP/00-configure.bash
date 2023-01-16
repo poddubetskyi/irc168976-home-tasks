@@ -8,6 +8,8 @@
 ## https://cloud.google.com/resource-manager/docs/creating-managing-projects#before_you_begin
 projectID='irc168976-hw04-gcp-e2e-t01'
 projectIDShortenedTo27Chars="${projectID:0:27}"
+# configurationName will be built as "${projectID}-cfg"
+configurationName="${projectID}-cfg"
 vmServiceAccountName="${projectIDShortenedTo27Chars}-sa"
 vmServiceAccountMemberString="serviceAccount:${vmServiceAccountName}@${projectID}.iam.gserviceaccount.com"
 
@@ -16,7 +18,7 @@ requiredGCPServicesList=( \
   'secretmanager.googleapis.com' \
   'iam.googleapis.com' \
   'cloudasset.googleapis.com' \
-  'storage.goofleapis.com' \
+  'storage.googleapis.com' \
 )
 
 # Default compute region and zone values 
@@ -32,16 +34,10 @@ else
   exit 1
 fi
 
-#if [[ -z "${userAccountInGCP}" ]] ; then
-#  printf 'ERROR in (%s). User account in GCP (e-mail address) must be provided as the value of the `userAccountInGCP` variable.\n' "${0}" >&2
-#  exit 2
-#fi
-# configurationName will be built as "${projectID}-cfg"
-configurationName="${projectID}-cfg"
 # if configuration with ${configurationName} doesn't exist
-if [[ "$(gcloud config configurations list \
-        --filter='(name:${configurationName})' \
-        --format='value(name)' | wc -l )" -eq 0 ]] ; then
+if [[ $(gcloud config configurations list \
+        "--filter=(name:${configurationName})" \
+        --format='value(name)' | wc -l ) -eq 0 ]] ; then
   #  then it will be created
   if gcloud config configurations create \
       --no-activate "${configurationName}" ; then
@@ -66,26 +62,27 @@ else
   exit 4
 fi
 
-# Get the first active account
-if activeAccountName=$(gcloud auth list --filter="(status:active)" \
+# Get the first credentialed account
+if credentialedAccountName=$(gcloud auth list \
                         --format="value(account)" | head --lines 1) && \
-                        [[ -n "${activeAccountName}" ]] ; then
-  # Set active account in active gclout configuration
-  if gcloud config set account "${activeAccountName}" ; then
-    printf 'Active account `%s` is successfully set for configuration `%s`\n' "${activeAccountName}" "${activeAccountName}"
+                        [[ -n "${credentialedAccountName}" ]] ; then
+  # Set active account in active gcloud configuration
+  if gcloud config set account "${credentialedAccountName}" ; then
+    printf 'Credentialed account `%s` is successfully set for the configuration `%s`\n' \
+             "${credentialedAccountName}" "${configurationName}"
   else
     printf 'ERROR in (%s). An error occurred while trying to set the account `%s` for the configuration `%s`.\n' \
-        "${0}" "${configurationName}" "${activeAccountName}" >&2
+        "${0}" "${credentialedAccountName}" "${configurationName}" >&2
     exit 5
   fi
 else
   # No active accounts were found. Invoking GCP sign in procedure
-  printf 'No active accounts were found. In order to continue working with this configuration\n'
+  printf 'No credentialed accounts were found. In order to continue working with this configuration\n'
   printf 'script it is required to sign in with Google Cloud Platform.\n'
-  printf 'To do this right now the following command will be invoked:\n'
+  printf 'To do this right now the following command will be automatically invoked:\n'
   printf '\t`gcloud auth login --no-launch-browser`\n'
-  printf 'Please, follow the instructions that will be fisplayed here\n to complete the sign in procedure.\n'
-  if gcloud auth login --no-launch-browser ; then
+  printf 'To complete the sign in procedure please follow\nthe instructions that will be displayed here.\n'
+  if gcloud auth login --no-launch-browser 2>&1 ; then
     printf 'Sign in procedure is completed successfully.\n'
   else
     printf 'ERROR in (%s). The sign in procedure faled\n' "${0}" >&2
@@ -94,7 +91,7 @@ else
 fi
 
 # List project with the provided name
-if [[ $(gcloud projects list --filter="(project_id:${projectID})"
+if [[ $(gcloud projects list --filter="(project_id:${projectID})" \
         --format='value(project_id)' | wc -l) -eq 0 ]] ; then
   # The project is not found and will be created
   if gcloud projects create "${projectID}" --name="${projectID}" ; then
@@ -186,19 +183,22 @@ if gcloud config set 'compute/zone' "${defaultZone}"  ; then
 fi
 
 # Create a service account to use with the project compute instance
-if gcloud iam service-accounts create "${serviceAccountName}" \
+if gcloud iam service-accounts create "${vmServiceAccountName}" \
       --description='Service account to access secrets in the Secret Manager and data in a bucket from a compute instance' \
-      --display-name="${serviceAccountName}" ; then
+      --display-name="${vmServiceAccountName}" ; then
   if gcloud compute project-info add-metadata \
       --metadata=vmServiceAccountMemberString="${vmServiceAccountMemberString}" ; then
     printf 'The vmServiceAccountMemberString value\n`%s`\n' "${vmServiceAccountMemberString}"
-    printf 'has been successfully stored in the project metadata'
+    printf 'has been successfully stored in the project metadata\n'
   else
     printf 'ERROR in (%s). An error occurred while trying to store\n' "${0}"  >&2
     printf 'the `%s` \nvmServiceAccountMemberString value into project metadata\n' "${vmServiceAccountMemberString}" >&2
   fi
 else
   printf 'ERROR in (%s). A service account creation operation failed.\n' "${0}"  >&2
-  printf 'The service account name is `%s`\n' ${serviceAccountName} >&2
+  printf 'The service account name is `%s`\n' "${vmServiceAccountName}" >&2
   exit 15
 fi
+
+printf '\nAll operations have been completed successfully!\n'
+printf 'Please, run the `./01-create-secrets-in-secret-manager.bash` script to continue with this work\n'
