@@ -51,9 +51,9 @@ chmod u+x 0*.bash
 3) If you wish to set up a secure TLS connection on your website and you have an ssl private key file, x.509 cerificate, and certificate chain for your website certificate then do the following:
    1) Place the contents of ssl private key file into the `secrets-data/website-key-pem.secret` file. The private key file should be in PEM (that is not DER) format. The keys in the PEM format contain the lines `-----BEGIN PRIVATE KEY-----` and `-----END PRIVATE KEY-----` lines at the beginning and the end of the private key file.
    2) Place the contents of your certificate file and certificate chain file into `non-restricted-data/website.cert.pem` and `non-restricted-data/website.chain.pem` files accordingly.
-   3) In the file search the line `['isSSLSetupDataProvided']='false'` and replace the `false` value to `true` then save the file
-   4) In the `non-restricted-data/website-ssl.conf` file replace all the occurences of the `www.poddubetskyi.pp.ua` string on the FQDN string, that is is specified in your website SSL certificate.
-4) Run the following commands in the folder with this distribution:
+   3) In the `03-deploy-irc168976-hw04-intro-to-gcp-vm-debian.gcloud.bash` file search the line `['isSSLSetupDataProvided']='false'` and replace the `false` value to `true` then save the file
+   4) In the `non-restricted-data/website-ssl.conf` file replace all the occurences of the `www.poddubetskyi.pp.ua` string on the FQDN string, that is specified in your website SSL certificate.
+4) Sequentially run the following commands in the folder with this distribution:
     1) ```
        ./00-configure.bash 2>$(date '+%0Y.%0m.%0d_%0H-%0M-%0S')-00-configure.bash.err | tee $(date '+%0Y.%0m.%0d_%0H-%0M-%0S')-00-configure.bash.log
        ```
