@@ -783,7 +783,7 @@ Deploy a Kubernetes cluster by following [the instructions](https://docs.google.
          Processing triggers for man-db (2.9.1-1) ...
          ```
          </details>
-10)  Disable swap:
+10) Disable swap:
     1) The `kubemaster` instance:
        * The command:
          ```bash
@@ -1592,9 +1592,9 @@ Deploy a Kubernetes cluster by following [the instructions](https://docs.google.
       ```
     * The output:
       ```
-      NAME                                                 STATUS   ROLES           AGE     VERSION   INTERNAL-IP   EXTERNAL-IP   OS-IMAGE             KERNEL-VERSION    CONTAINER-RUNTIME
-      irc168976-hw10-k8s-manual-deployment-kubemaster-vm   Ready    control-plane   33m     v1.26.1   10.132.0.6    <none>        Ubuntu 20.04.5 LTS   5.15.0-1027-gcp   containerd://1.6.16
-      irc168976-hw10-k8s-manual-deployment-kubenode-vm     Ready    <none>          3m19s   v1.26.1   10.132.0.7    <none>        Ubuntu 20.04.5 LTS   5.15.0-1027-gcp   containerd://1.6.16
+      NAME                                                 STATUS   ROLES           AGE    VERSION   INTERNAL-IP   EXTERNAL-IP   OS-IMAGE             KERNEL-VERSION    CONTAINER-RUNTIME
+      irc168976-hw10-k8s-manual-deployment-kubemaster-vm   Ready    control-plane   137m   v1.26.1   10.132.0.6    <none>        Ubuntu 20.04.5 LTS   5.15.0-1027-gcp   containerd://1.6.16
+      irc168976-hw10-k8s-manual-deployment-kubenode-vm     Ready    <none>          107m   v1.26.1   10.132.0.7    <none>        Ubuntu 20.04.5 LTS   5.15.0-1027-gcp   containerd://1.6.16
       ```
 21) Change the role of the `kubenode` node and list the nodes again:
     * The command:
@@ -1604,9 +1604,9 @@ Deploy a Kubernetes cluster by following [the instructions](https://docs.google.
     * The output:
       ```
       node/irc168976-hw10-k8s-manual-deployment-kubenode-vm labeled
-      NAME                                                 STATUS   ROLES           AGE   VERSION   INTERNAL-IP   EXTERNAL-IP   OS-IMAGE             KERNEL-VERSION    CONTAINER-RUNTIME
-      irc168976-hw10-k8s-manual-deployment-kubemaster-vm   Ready    control-plane   47m   v1.26.1   10.132.0.6    <none>        Ubuntu 20.04.5 LTS   5.15.0-1027-gcp   containerd://1.6.16
-      irc168976-hw10-k8s-manual-deployment-kubenode-vm     Ready    worker          16m   v1.26.1   10.132.0.7    <none>        Ubuntu 20.04.5 LTS   5.15.0-1027-gcp   containerd://1.6.16
+      NAME                                                 STATUS   ROLES           AGE    VERSION   INTERNAL-IP   EXTERNAL-IP   OS-IMAGE             KERNEL-VERSION    CONTAINER-RUNTIME
+      irc168976-hw10-k8s-manual-deployment-kubemaster-vm   Ready    control-plane   139m   v1.26.1   10.132.0.6    <none>        Ubuntu 20.04.5 LTS   5.15.0-1027-gcp   containerd://1.6.16
+      irc168976-hw10-k8s-manual-deployment-kubenode-vm     Ready    worker          109m   v1.26.1   10.132.0.7    <none>        Ubuntu 20.04.5 LTS   5.15.0-1027-gcp   containerd://1.6.16
       ```
 
 ### Counclusion
@@ -1628,7 +1628,7 @@ The Kubernetes cluster has been deployed successfully
    ```
    ssh-keygen -R 34.79.40.78 34.79.109.57 -f ~/.ssh/known_hosts
    ```
-4) Remove the connection settings to the `kubemaster` and `kubenode` instances from the local user's SSH client config file `${HOME}/.ssh/config`:
+4) Remove the connection settings used to connect to the `kubemaster` and `kubenode` instances from the local user's SSH client configuration file `${HOME}/.ssh/config`:
    * The command:
      ```
      while lNumber=$(grep --max-count 1 --no-filename --fixed-strings --line-number \
