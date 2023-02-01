@@ -95,7 +95,7 @@ Deploy a Kubernetes cluster by following [the instructions](https://docs.google.
       * The commands:
         ```bash
         printf 'adminuser:' > "${HOME}/.ssh/adminuser@irc168976-hw10-k8s-manual-deployment-kubemaster-key-ed25519.key.pub.metadata"
-        cat "${HOME}/.ssh/adminuser@irc168976-hw10-k8s-manual-deployment-kubemaster-key-ed25519.key.pub" > "${HOME}/.ssh/adminuser@irc168976-hw10-k8s-manual-deployment-kubemaster-key-ed25519.key.pub.metadata"
+        cat "${HOME}/.ssh/adminuser@irc168976-hw10-k8s-manual-deployment-kubemaster-key-ed25519.key.pub" >> "${HOME}/.ssh/adminuser@irc168976-hw10-k8s-manual-deployment-kubemaster-key-ed25519.key.pub.metadata"
         ```
       * The result:
         ```
@@ -105,7 +105,7 @@ Deploy a Kubernetes cluster by following [the instructions](https://docs.google.
       * The commands:
         ```bash
         printf 'adminuser:' > "${HOME}/.ssh/adminuser@irc168976-hw10-k8s-manual-deployment-kubenode-key-ed25519.key.pub.metadata"
-        cat "${HOME}/.ssh/adminuser@irc168976-hw10-k8s-manual-deployment-kubenode-key-ed25519.key.pub" > "${HOME}/.ssh/adminuser@irc168976-hw10-k8s-manual-deployment-kubenode-key-ed25519.key.pub.metadata"
+        cat "${HOME}/.ssh/adminuser@irc168976-hw10-k8s-manual-deployment-kubenode-key-ed25519.key.pub" >> "${HOME}/.ssh/adminuser@irc168976-hw10-k8s-manual-deployment-kubenode-key-ed25519.key.pub.metadata"
         ```
       * The result:
         ```
@@ -255,7 +255,76 @@ Deploy a Kubernetes cluster by following [the instructions](https://docs.google.
       34.79.109.57 ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDIFMTWLnv8bcGZTsVUIGC9qZA1HjtTjWQ+ynJKwAmpbBIoRxry5iJ/dWOttym66wlHWpg18p09iXK5Wqrr/wdN3mkLz+2A9RcmIAA78TQSoAkG/jTA5scU4HEhkJP+dJlnE6m+swCkXN1JGx2Qrcd4kbYH/kswMBeHxUBhTLWlKeYdROWSKqVF7HkfRHPJfsm6ddo2JsgSVC51Q4oZRQEecj0ljE/+ku1J4IX2iIf1zx+/wfg1WcpHqqOAoZEilxAnoWjxgjlIh/jgoqs8dde5GQzH4qzJ4boiCPaEVy7PURpBRm8Cs81WwB/Cmb2APh1xQpu5PEwezc8AvaHxslzoL2m7GClTtLwcrpvUqaCQ4a8HcmeQ1Mz9vh5HdT18CkZ3pVQFEoIRlScgdbzakkYRTXhHyR+gM1HlZsaNzg1dq0KCDNn8es5Yc4oHt4eaciOIkFK1q3AvmLcjnjzOeL7wD4RTEK/14D1oSb9nf8agIM0xUd3qAUwfxBewuEJ9ZVc=
       34.79.109.57 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIW9hX/7nVgb4sbghIetTq+h60ib4IODBDFgSNDnV5nQ
       ```
-4)  Enable Kernel modules on both instances:
+4)  Add the `kubemaster` and `kubenode` aliases into the `/etc/host` file:
+    1) The `kubemaster` instance:
+       * The command:
+         ```bash
+         ssh hw10-kubemaster 'cat /etc/hosts && sudo sed -i '\''s/\(^127.0.0.1\s\+localhost$\)/\1\n10.132.0.6 kubemaster\n10.132.0.7 kubenode\n/'\'' /etc/hosts && printf "\n\n" && cat /etc/hosts'
+         ```
+       * The output: (tl/dr) <details><summary>Show details</summary>
+         ```
+         127.0.0.1 localhost
+
+         # The following lines are desirable for IPv6 capable hosts
+         ::1 ip6-localhost ip6-loopback
+         fe00::0 ip6-localnet
+         ff00::0 ip6-mcastprefix
+         ff02::1 ip6-allnodes
+         ff02::2 ip6-allrouters
+         ff02::3 ip6-allhosts
+         169.254.169.254 metadata.google.internal metadata
+         
+         
+         127.0.0.1 localhost
+         10.132.0.6 kubemaster
+         10.132.0.7 kubenode
+         
+         
+         # The following lines are desirable for IPv6 capable hosts
+         ::1 ip6-localhost ip6-loopback
+         fe00::0 ip6-localnet
+         ff00::0 ip6-mcastprefix
+         ff02::1 ip6-allnodes
+         ff02::2 ip6-allrouters
+         ff02::3 ip6-allhosts
+         169.254.169.254 metadata.google.internal metadata
+         ```
+         </details>
+    2) The `kubenode` instance:
+       * The command:
+         ```bash
+         ssh hw10-kubenode 'cat /etc/hosts && sudo sed -i '\''s/\(^127.0.0.1\s\+localhost$\)/\1\n10.132.0.6 kubemaster\n10.132.0.7 kubenode\n/'\'' /etc/hosts && printf "\n\n" && cat /etc/hosts'
+         ```
+       * The output: (tl/dr) <details><summary>Show details</summary>
+         ```
+         127.0.0.1 localhost
+
+         # The following lines are desirable for IPv6 capable hosts
+         ::1 ip6-localhost ip6-loopback
+         fe00::0 ip6-localnet
+         ff00::0 ip6-mcastprefix
+         ff02::1 ip6-allnodes
+         ff02::2 ip6-allrouters
+         ff02::3 ip6-allhosts
+         169.254.169.254 metadata.google.internal metadata
+ 
+ 
+         127.0.0.1 localhost
+         10.132.0.6 kubemaster
+         10.132.0.7 kubenode
+ 
+ 
+         # The following lines are desirable for IPv6 capable hosts
+         ::1 ip6-localhost ip6-loopback
+         fe00::0 ip6-localnet
+         ff00::0 ip6-mcastprefix
+         ff02::1 ip6-allnodes
+         ff02::2 ip6-allrouters
+         ff02::3 ip6-allhosts
+         169.254.169.254 metadata.google.internal metadata
+         ```
+         </details>
+5)  Enable Kernel modules on both instances:
     1) The `kubemaster` instance:
        * The commands:
          ```bash
@@ -278,7 +347,7 @@ Deploy a Kubernetes cluster by following [the instructions](https://docs.google.
          Success!
          Success!
          ```
-5)  Add Kubernetes and Docker repository keys and repositories:
+6)  Add Kubernetes and Docker repository keys and repositories:
     1) The `kubemaster` instance:
        * The commands:
          ```
@@ -305,7 +374,7 @@ Deploy a Kubernetes cluster by following [the instructions](https://docs.google.
          Warning: apt-key output should not be parsed (stdout is not a terminal)
          OK
          ```
-6)  Add Kubernetes and Docker repositories:
+7)  Add Kubernetes and Docker repositories:
     1) The `kubemaster` instance:
        * The command:
          ```
@@ -395,7 +464,7 @@ Deploy a Kubernetes cluster by following [the instructions](https://docs.google.
          Fetched 153 kB in 1s (199 kB/s)
          Reading package lists...
          ```
-7)  Update package lists and upgrade packages:
+8)  Update package lists and upgrade packages:
     1) The `kubemaster` instance:
        * The command:
          ```bash
@@ -597,7 +666,7 @@ Deploy a Kubernetes cluster by following [the instructions](https://docs.google.
          Processing triggers for dbus (1.12.16-2ubuntu2.3) ...
          ```
          </details>
-8)  Install necessary tools:
+9)  Install necessary tools:
     1) The `kubemaster` instance:
        * The command:
          ```
@@ -714,7 +783,7 @@ Deploy a Kubernetes cluster by following [the instructions](https://docs.google.
          Processing triggers for man-db (2.9.1-1) ...
          ```
          </details>
-9)  Disable swap:
+10)  Disable swap:
     1) The `kubemaster` instance:
        * The command:
          ```bash
@@ -735,7 +804,7 @@ Deploy a Kubernetes cluster by following [the instructions](https://docs.google.
          LABEL=cloudimg-rootfs   /        ext4   defaults        0 1
          LABEL=UEFI      /boot/efi       vfat    umask=0077      0 1
          ```
-10) Install the Kubernetes components and prevent changes of them (put them on hold)
+11) Install the Kubernetes components and prevent changes of them (put them on hold)
     1) The `kubemaster` instance:
        * The command:
          ```bash
@@ -904,7 +973,7 @@ Deploy a Kubernetes cluster by following [the instructions](https://docs.google.
          kubectl set on hold.
          ```
          </details>
-11) Install the `containerd`:
+12) Install the `containerd`:
     1) The `kubemaster` instance:
        * The command:
          ```bash
@@ -989,8 +1058,8 @@ Deploy a Kubernetes cluster by following [the instructions](https://docs.google.
          Processing triggers for man-db (2.9.1-1) ...
          ```
          </details>
-12) Configure the `containerd`:
-    1) Create a new directory for containerd and generate the configuration file for it
+13) Configure the `containerd`:
+    1) Create a new directory for the `containerd` and generate the configuration file for it:
        1) The `kubemaster` instance:
           * The command:
             ```bash
@@ -1011,22 +1080,22 @@ Deploy a Kubernetes cluster by following [the instructions](https://docs.google.
             ```
     2) Restart the containerd service and enable it to run at startup: 
        1) The `kubemaster` instance:
-         * The command:
-           ```bash
-           ssh hw10-kubemaster 'sudo systemctl restart containerd && sudo systemctl enable containerd && sudo systemctl status containerd'
-           ```
-         * The output:
-           ```
-           ● containerd.service - containerd container runtime
-               Loaded: loaded (/lib/systemd/system/containerd.service; enabled; vendor preset: enabled)
-               Active: active (running) since Tue 2023-01-31 20:46:01 UTC; 318ms ago
-                 Docs: https://containerd.io
-             Main PID: 9048 (containerd)
-                 Tasks: 11
-               Memory: 13.3M
-               CGroup: /system.slice/containerd.service
-                       └─9048 /usr/bin/containerd
-
+          * The command:
+            ```bash
+            ssh hw10-kubemaster 'sudo systemctl restart containerd && sudo systemctl enable containerd && sudo systemctl status containerd'
+            ```
+          * The output:
+            ```
+            ● containerd.service - containerd container runtime
+                Loaded: loaded (/lib/systemd/system/containerd.service; enabled; vendor preset: enabled)
+                Active: active (running) since Tue 2023-01-31 20:46:01 UTC; 318ms ago
+                  Docs: https://containerd.io
+              Main PID: 9048 (containerd)
+                  Tasks: 11
+                Memory: 13.3M
+                CGroup: /system.slice/containerd.service
+                        └─9048 /usr/bin/containerd
+ 
             Jan 31 20:46:01 irc168976-hw10-k8s-manual-deployment-kubemaster-vm containerd[9048]: time="2023-01-31T20:46:01.197510063Z" level=info msg="Start subscribing containerd event"
             Jan 31 20:46:01 irc168976-hw10-k8s-manual-deployment-kubemaster-vm containerd[9048]: time="2023-01-31T20:46:01.197598919Z" level=info msg="Start recovering state"
             Jan 31 20:46:01 irc168976-hw10-k8s-manual-deployment-kubemaster-vm containerd[9048]: time="2023-01-31T20:46:01.197680987Z" level=info msg="Start event monitor"
@@ -1066,7 +1135,7 @@ Deploy a Kubernetes cluster by following [the instructions](https://docs.google.
             Jan 31 20:47:31 irc168976-hw10-k8s-manual-deployment-kubenode-vm systemd[1]: Started containerd container runtime.
             Jan 31 20:47:31 irc168976-hw10-k8s-manual-deployment-kubenode-vm containerd[9278]: time="2023-01-31T20:47:31.942306489Z" level=info msg="containerd successfully booted in 0.033987s"
             ```
-13) Start and enable the `kubelet` service with:
+14) Start and enable the `kubelet` service:
     1) The `kubemaster` instance:
        * The command:
          ```bash
@@ -1109,7 +1178,7 @@ Deploy a Kubernetes cluster by following [the instructions](https://docs.google.
  
          Jan 31 20:54:41 irc168976-hw10-k8s-manual-deployment-kubenode-vm systemd[1]: Started kubelet: The Kubernetes Node Agent.
          ```
-14) Check the `sysctl` settings in the `/etc/sysctl.d/kubernetes.conf` file that their values are as expected and reload `sysctl` after tuning them as necessary:
+15) Check the `sysctl` settings in the `/etc/sysctl.d/kubernetes.conf` file that their values are as expected and reload `sysctl` after tuning them as necessary:
     1) Expected properties and values are as follows:
        ```conf /etc/sysctl.d/kubernetes.conf
        net.bridge.bridge-nf-call-ip6tables = 1
@@ -1300,7 +1369,7 @@ Deploy a Kubernetes cluster by following [the instructions](https://docs.google.
             sysctl: setting key "net.ipv4.conf.all.promote_secondaries": Invalid argument
             ```
             </details>
-15) Pull down the necessary container images:
+16) Pull down the necessary container images:
     1) The `kubemaster` instance:
        * The command:
          ```bash
@@ -1331,75 +1400,6 @@ Deploy a Kubernetes cluster by following [the instructions](https://docs.google.
          [config/images] Pulled registry.k8s.io/etcd:3.5.6-0
          [config/images] Pulled registry.k8s.io/coredns/coredns:v1.9.3
          ```
-16) Add the `kubemaster` and `kubenode` aliases into the `/etc/host` file:
-    1) The `kubemaster` instance:
-       * The command:
-         ```bash
-         ssh hw10-kubemaster 'cat /etc/hosts && sudo sed -i '\''s/\(^127.0.0.1\s\+localhost$\)/\1\n10.132.0.6 kubemaster\n10.132.0.7 kubenode\n/'\'' /etc/hosts && printf "\n\n" && cat /etc/hosts'
-         ```
-       * The output: (tl/dr) <details><summary>Show details</summary>
-         ```
-         127.0.0.1 localhost
-
-         # The following lines are desirable for IPv6 capable hosts
-         ::1 ip6-localhost ip6-loopback
-         fe00::0 ip6-localnet
-         ff00::0 ip6-mcastprefix
-         ff02::1 ip6-allnodes
-         ff02::2 ip6-allrouters
-         ff02::3 ip6-allhosts
-         169.254.169.254 metadata.google.internal metadata
-         
-         
-         127.0.0.1 localhost
-         10.132.0.6 kubemaster
-         10.132.0.7 kubenode
-         
-         
-         # The following lines are desirable for IPv6 capable hosts
-         ::1 ip6-localhost ip6-loopback
-         fe00::0 ip6-localnet
-         ff00::0 ip6-mcastprefix
-         ff02::1 ip6-allnodes
-         ff02::2 ip6-allrouters
-         ff02::3 ip6-allhosts
-         169.254.169.254 metadata.google.internal metadata
-         ```
-         </details>
-    2) The `kubenode` instance:
-       * The command:
-         ```bash
-         ssh hw10-kubenode 'cat /etc/hosts && sudo sed -i '\''s/\(^127.0.0.1\s\+localhost$\)/\1\n10.132.0.6 kubemaster\n10.132.0.7 kubenode\n/'\'' /etc/hosts && printf "\n\n" && cat /etc/hosts'
-         ```
-       * The output: (tl/dr) <details><summary>Show details</summary>
-         ```
-         127.0.0.1 localhost
-
-         # The following lines are desirable for IPv6 capable hosts
-         ::1 ip6-localhost ip6-loopback
-         fe00::0 ip6-localnet
-         ff00::0 ip6-mcastprefix
-         ff02::1 ip6-allnodes
-         ff02::2 ip6-allrouters
-         ff02::3 ip6-allhosts
-         169.254.169.254 metadata.google.internal metadata
- 
- 
-         127.0.0.1 localhost
-         10.132.0.6 kubemaster
-         10.132.0.7 kubenode
- 
- 
-         # The following lines are desirable for IPv6 capable hosts
-         ::1 ip6-localhost ip6-loopback
-         fe00::0 ip6-localnet
-         ff00::0 ip6-mcastprefix
-         ff02::1 ip6-allnodes
-         ff02::2 ip6-allrouters
-         ff02::3 ip6-allhosts
-         169.254.169.254 metadata.google.internal metadata
-         ```
-         </details>
 17) Initialize the **master** node by performing such actions on the `kubemaster` instance only:
     1) Initialize the Kubernetes control-plane with the following command:
        * The command:
@@ -1538,51 +1538,7 @@ Deploy a Kubernetes cluster by following [the instructions](https://docs.google.
             installation.operator.tigera.io/default created
             apiserver.operator.tigera.io/default created
             ```
-18) Attach `kubenode` to `kubemaster` using the `kubeadm join` command, that has been listed in the output of the Kubernetes control-plane initialization command on the step 17.1. Run the proposed command on the `kubenode` instance only:
-    * The command:
-      ```
-      ssh hw10-kubenode 'sudo kubeadm join 10.132.0.6:6443 --token hytykz.ykpsrke4hd4g1w68 --discovery-token-ca-cert-hash sha256:fd67ad420dd59883eab431a81e1a563a9a0e04f1dfab6f34f984ce17a053f07a'
-      ```
-    * The output:
-      ```
-      [preflight] Running pre-flight checks
-      [preflight] Reading configuration from the cluster...
-      [preflight] FYI: You can look at this config file with 'kubectl -n kube-system get cm kubeadm-config -o yaml'
-      [kubelet-start] Writing kubelet configuration to file "/var/lib/kubelet/config.yaml"
-      [kubelet-start] Writing kubelet environment file with flags to file "/var/lib/kubelet/kubeadm-flags.env"
-      [kubelet-start] Starting the kubelet
-      [kubelet-start] Waiting for the kubelet to perform the TLS Bootstrap...
-
-      This node has joined the cluster:
-      * Certificate signing request was sent to apiserver and a response was received.
-      * The Kubelet was informed of the new secure connection details.
-
-      Run 'kubectl get nodes' on the control-plane to see this node join the cluster.
-      ```
-19) Run `kubectl get nodes` on the `kubemaster` instance to see the `kubenode` instance join the cluster:
-    * The command:
-      ```bash
-      ssh hw10-kubemaster 'kubectl get nodes -o wide'
-      ```
-    * The output:
-      ```
-      NAME                                                 STATUS   ROLES           AGE     VERSION   INTERNAL-IP   EXTERNAL-IP   OS-IMAGE             KERNEL-VERSION    CONTAINER-RUNTIME
-      irc168976-hw10-k8s-manual-deployment-kubemaster-vm   Ready    control-plane   33m     v1.26.1   10.132.0.6    <none>        Ubuntu 20.04.5 LTS   5.15.0-1027-gcp   containerd://1.6.16
-      irc168976-hw10-k8s-manual-deployment-kubenode-vm     Ready    <none>          3m19s   v1.26.1   10.132.0.7    <none>        Ubuntu 20.04.5 LTS   5.15.0-1027-gcp   containerd://1.6.16
-      ```
-20) Change the role of the `kubenode` node and list the nodes again:
-    * The command:
-      ```
-      ssh hw10-kubemaster 'kubectl label node irc168976-hw10-k8s-manual-deployment-kubenode-vm node-role.kubernetes.io/worker="" && kubectl get nodes -o wide'
-      ```
-    * The output:
-      ```
-      node/irc168976-hw10-k8s-manual-deployment-kubenode-vm labeled
-      NAME                                                 STATUS   ROLES           AGE   VERSION   INTERNAL-IP   EXTERNAL-IP   OS-IMAGE             KERNEL-VERSION    CONTAINER-RUNTIME
-      irc168976-hw10-k8s-manual-deployment-kubemaster-vm   Ready    control-plane   47m   v1.26.1   10.132.0.6    <none>        Ubuntu 20.04.5 LTS   5.15.0-1027-gcp   containerd://1.6.16
-      irc168976-hw10-k8s-manual-deployment-kubenode-vm     Ready    worker          16m   v1.26.1   10.132.0.7    <none>        Ubuntu 20.04.5 LTS   5.15.0-1027-gcp   containerd://1.6.16
-      ```
-21) Check that all cluster pods are in the `running` state:
+18) Check that all cluster pods are in the `running` state:
     * The command:
       ```
       ssh hw10-kubemaster 'kubectl get pods --all-namespaces'
@@ -1608,6 +1564,50 @@ Deploy a Kubernetes cluster by following [the instructions](https://docs.google.
       kube-system        kube-scheduler-irc168976-hw10-k8s-manual-deployment-kubemaster-vm            1/1     Running   0          81m
       tigera-operator    tigera-operator-54b47459dd-fsgbg                                             1/1     Running   0          61m
       ```
+19) Attach `kubenode` to `kubemaster` using the `kubeadm join` command, that has been listed in the output of the Kubernetes control-plane initialization command on the step 17.1. Run the proposed command on the `kubenode` instance only:
+    * The command:
+      ```
+      ssh hw10-kubenode 'sudo kubeadm join 10.132.0.6:6443 --token hytykz.ykpsrke4hd4g1w68 --discovery-token-ca-cert-hash sha256:fd67ad420dd59883eab431a81e1a563a9a0e04f1dfab6f34f984ce17a053f07a'
+      ```
+    * The output:
+      ```
+      [preflight] Running pre-flight checks
+      [preflight] Reading configuration from the cluster...
+      [preflight] FYI: You can look at this config file with 'kubectl -n kube-system get cm kubeadm-config -o yaml'
+      [kubelet-start] Writing kubelet configuration to file "/var/lib/kubelet/config.yaml"
+      [kubelet-start] Writing kubelet environment file with flags to file "/var/lib/kubelet/kubeadm-flags.env"
+      [kubelet-start] Starting the kubelet
+      [kubelet-start] Waiting for the kubelet to perform the TLS Bootstrap...
+
+      This node has joined the cluster:
+      * Certificate signing request was sent to apiserver and a response was received.
+      * The Kubelet was informed of the new secure connection details.
+
+      Run 'kubectl get nodes' on the control-plane to see this node join the cluster.
+      ```
+20) Run `kubectl get nodes` on the `kubemaster` instance to see the `kubenode` instance join the cluster:
+    * The command:
+      ```bash
+      ssh hw10-kubemaster 'kubectl get nodes -o wide'
+      ```
+    * The output:
+      ```
+      NAME                                                 STATUS   ROLES           AGE     VERSION   INTERNAL-IP   EXTERNAL-IP   OS-IMAGE             KERNEL-VERSION    CONTAINER-RUNTIME
+      irc168976-hw10-k8s-manual-deployment-kubemaster-vm   Ready    control-plane   33m     v1.26.1   10.132.0.6    <none>        Ubuntu 20.04.5 LTS   5.15.0-1027-gcp   containerd://1.6.16
+      irc168976-hw10-k8s-manual-deployment-kubenode-vm     Ready    <none>          3m19s   v1.26.1   10.132.0.7    <none>        Ubuntu 20.04.5 LTS   5.15.0-1027-gcp   containerd://1.6.16
+      ```
+21) Change the role of the `kubenode` node and list the nodes again:
+    * The command:
+      ```
+      ssh hw10-kubemaster 'kubectl label node irc168976-hw10-k8s-manual-deployment-kubenode-vm node-role.kubernetes.io/worker="" && kubectl get nodes -o wide'
+      ```
+    * The output:
+      ```
+      node/irc168976-hw10-k8s-manual-deployment-kubenode-vm labeled
+      NAME                                                 STATUS   ROLES           AGE   VERSION   INTERNAL-IP   EXTERNAL-IP   OS-IMAGE             KERNEL-VERSION    CONTAINER-RUNTIME
+      irc168976-hw10-k8s-manual-deployment-kubemaster-vm   Ready    control-plane   47m   v1.26.1   10.132.0.6    <none>        Ubuntu 20.04.5 LTS   5.15.0-1027-gcp   containerd://1.6.16
+      irc168976-hw10-k8s-manual-deployment-kubenode-vm     Ready    worker          16m   v1.26.1   10.132.0.7    <none>        Ubuntu 20.04.5 LTS   5.15.0-1027-gcp   containerd://1.6.16
+      ```
 
 ### Counclusion
 
@@ -1623,3 +1623,16 @@ The Kubernetes cluster has been deployed successfully
    ```
    gcloud compute addresses delete hw10-k8s-kubemaster-ext-ip hw10-k8s-kubenode-ext-ip
    ```
+3) Remove the SSh server public keys of the instances from the local user's `${HOME}/.ssh/known_hosts` file:
+   * The command:
+   ```
+   ssh-keygen -R 34.79.40.78 34.79.109.57 -f ~/.ssh/known_hosts
+   ```
+4) Remove the connection settings to the `kubemaster` and `kubenode` instances from the local user's SSH client config file `${HOME}/.ssh/config`:
+   * The command:
+     ```
+     while lNumber=$(grep --max-count 1 --no-filename --fixed-strings --line-number \
+       '# GL devops basecamp irc168976 home work 10 kube' ${HOME}/.ssh/config | \
+       cut --delimiter=':' --fields 1 ) && [[ -n "${lNumber}" ]] ; do \
+         sed -i "${lNumber},$((${lNumber}+6)) d" ${HOME}/.ssh/config ; done
+     ```
