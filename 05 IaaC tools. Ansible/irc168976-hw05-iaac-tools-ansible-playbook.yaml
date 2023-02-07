@@ -1,0 +1,31 @@
+- name: "IRC168976 DevOps GL BaseCamp homework 05. IaaC tools: Ansible. The play that invokes the role for /etc/iaac for hosts group `iaas`"
+  hosts: iaas
+  gather_facts: false
+  roles:
+    - role: './roles/create-the-iaac-file-with-0500-mode'
+  tasks:
+    - name: 'List the file that has been created'
+      ansible.builtin.shell:
+        cmd: 'ls -la /etc/iaac'
+      become: true
+      register: listCommandOutput
+
+    - name: 'Display list command output'
+      ansible.builtin.debug:
+        msg: "{{ listCommandOutput }}"
+
+- name: "IRC168976 DevOps GL BaseCamp homework 05. IaaC tools: Ansible. The play that invokes the role to fetch a linux distro name/version for all hosts"
+  hosts:
+    - iaas
+    - hw05_mngd_vm_03_grp
+  gather_facts: false
+  tasks:
+    - name: "Use the `fetch a linux distro name/version` role"
+      include_role:
+        name: './roles/fetch-a-linux-distro-name-and-version'
+      vars:
+        register: fetchALinuxDistroNameAndVersionRoleOutput
+
+    - name: 'Display the message that is got from the `fetch a linux distro name/version` role'
+      ansible.builtin.debug:
+        msg: "{{ fetchALinuxDistroNameAndVersionRoleOutput.msg }}"

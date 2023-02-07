@@ -1,0 +1,13 @@
+- name: "Fetch a linux distro name/version using Ansible builtin `setup` module"
+  ansible.builtin.setup:
+  register: setupModuleOutput
+
+- name: "Create a variable that contains the fetched linux distro name/version"
+  set_fact:
+    linuxDistroNameAndVersion: "{{ setupModuleOutput.ansible_facts.ansible_distribution }} {{ setupModuleOutput.ansible_facts.ansible_distribution_version }}"  
+
+
+- name: "Display the linux distro name/version that is the value of the created variable"
+  ansible.builtin.debug:
+    msg: "A linux distro name/version on the inventory hostname `{{ inventory_hostname }}` is as follows: {{ linuxDistroNameAndVersion }}"
+  register: fetchALinuxDistroNameAndVersionRoleOutput

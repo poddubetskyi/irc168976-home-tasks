@@ -1,0 +1,6 @@
+- name: "Create an empty file /etc/iaac with rigths 0500"
+  ansible.builtin.file:
+    path: '/etc/iaac'
+    mode: '0500'
+    state: 'touch'
+  become: true
